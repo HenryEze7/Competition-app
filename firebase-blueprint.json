@@ -1,0 +1,147 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user profile in the application.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 200 },
+        "role": { "type": "string", "enum": ["participant", "admin"] },
+        "balance": { "type": "number" },
+        "totalEarned": { "type": "number" },
+        "createdAt": { "type": "string", "format": "timestamp" }
+      },
+      "required": ["name", "email", "role", "createdAt"]
+    },
+    "Challenge": {
+      "title": "Challenge",
+      "description": "A challenge created by an admin.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "task": { "type": "string", "maxLength": 5000 },
+        "expectedResult": { "type": "string", "maxLength": 5000 },
+        "reward": { "type": "number" },
+        "deadline": { "type": "string", "format": "timestamp" },
+        "rules": { "type": "string", "maxLength": 5000 },
+        "submissionRequirements": { "type": "string", "maxLength": 5000 },
+        "status": { "type": "string", "enum": ["open", "closed"] },
+        "submissionsCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "timestamp" },
+        "createdBy": { "type": "string", "maxLength": 128 }
+      }
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "A submission for a challenge.",
+      "type": "object",
+      "properties": {
+        "challengeId": { "type": "string", "maxLength": 128 },
+        "participantId": { "type": "string", "maxLength": 128 },
+        "participantName": { "type": "string", "maxLength": 100 },
+        "challengeTitle": { "type": "string", "maxLength": 200 },
+        "response": { "type": "string", "maxLength": 5000 },
+        "submittedLink": { "type": "string", "maxLength": 1000 },
+        "fileData": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "adminFeedback": { "type": "string", "maxLength": 5000 },
+        "submittedAt": { "type": "string", "format": "timestamp" },
+        "verifiedAt": { "type": "string", "format": "timestamp" }
+      }
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A reward transaction.",
+      "type": "object",
+      "properties": {
+        "participantId": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["reward"] },
+        "challengeId": { "type": "string", "maxLength": 128 },
+        "challengeTitle": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "createdAt": { "type": "string", "format": "timestamp" }
+      }
+    },
+    "Channel": {
+      "title": "Channel",
+      "description": "A user's video channel.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "avatarUrl": { "type": "string", "maxLength": 1000 },
+        "bannerUrl": { "type": "string", "maxLength": 1000 },
+        "subscribersCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "timestamp" },
+        "updatedAt": { "type": "string", "format": "timestamp" }
+      },
+      "required": ["ownerId", "name", "createdAt"]
+    },
+    "Video": {
+      "title": "Video",
+      "description": "A video uploaded to a channel.",
+      "type": "object",
+      "properties": {
+        "channelId": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "videoUrl": { "type": "string", "maxLength": 1000 },
+        "thumbnailUrl": { "type": "string", "maxLength": 1000 },
+        "viewsCount": { "type": "number" },
+        "likesCount": { "type": "number" },
+        "status": { "type": "string", "enum": ["public", "private"] },
+        "createdAt": { "type": "string", "format": "timestamp" },
+        "updatedAt": { "type": "string", "format": "timestamp" }
+      },
+      "required": ["channelId", "ownerId", "title", "videoUrl", "status", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A comment on a video.",
+      "type": "object",
+      "properties": {
+        "videoId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 100 },
+        "text": { "type": "string", "maxLength": 2000 },
+        "createdAt": { "type": "string", "format": "timestamp" }
+      },
+      "required": ["videoId", "userId", "text", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles"
+    },
+    "challenges/{challengeId}": {
+      "schema": { "$ref": "#/entities/Challenge" },
+      "description": "Challenges"
+    },
+    "submissions/{submissionId}": {
+      "schema": { "$ref": "#/entities/Submission" },
+      "description": "Submissions"
+    },
+    "transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/Transaction" },
+      "description": "Transactions"
+    },
+    "channels/{channelId}": {
+      "schema": { "$ref": "#/entities/Channel" },
+      "description": "Channels"
+    },
+    "videos/{videoId}": {
+      "schema": { "$ref": "#/entities/Video" },
+      "description": "Videos"
+    },
+    "comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "Comments"
+    }
+  }
+}

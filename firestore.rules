@@ -1,0 +1,94 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() { return request.auth != null; }
+    
+    function existing() { return resource.data; }
+    function incoming() { return request.resource.data; }
+    function isValidId(id) { return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    // Admins
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /challenges/{challengeId} {
+      allow get: if isValidId(challengeId);
+      allow list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    
+    match /submissions/{submissionId} {
+      allow get: if isSignedIn() && isValidId(submissionId) && (existing().participantId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.participantId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && incoming().participantId == request.auth.uid;
+      allow update: if isAdmin();
+    }
+
+    match /transactions/{transactionId} {
+      allow get: if isSignedIn() && isValidId(transactionId) && (existing().participantId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.participantId == request.auth.uid || isAdmin());
+      allow create, update: if isAdmin();
+    }
+
+    // Chat Channels & Messages (Original)
+    match /channels/{channelId} {
+      allow read, write: if isSignedIn();
+    }
+    match /channelMessages/{messageId} {
+      allow read, write: if isSignedIn();
+    }
+    match /directMessages/{messageId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /messages/{messageId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // New Video Channels Rules
+    match /videoChannels/{channelId} {
+      allow get: if isValidId(channelId);
+      allow list: if true;
+      allow create: if isSignedIn() && incoming().ownerId == request.auth.uid;
+      allow update: if isSignedIn() && existing().ownerId == request.auth.uid && incoming().ownerId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // New Videos Rules
+    match /videos/{videoId} {
+      allow get: if isValidId(videoId);
+      allow list: if true;
+      allow create: if isSignedIn() && incoming().ownerId == request.auth.uid;
+      allow update: if isSignedIn() && existing().ownerId == request.auth.uid && incoming().ownerId == request.auth.uid;
+      allow delete: if isSignedIn() && existing().ownerId == request.auth.uid;
+    }
+
+    // New Comments Rules
+    match /comments/{commentId} {
+      allow get: if isValidId(commentId);
+      allow list: if true;
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && existing().userId == request.auth.uid && incoming().userId == request.auth.uid;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /subscriptions/{subscriptionId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+  }
+}
